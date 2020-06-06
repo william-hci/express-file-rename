@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 const fs = require('fs');
+const sharp = require('sharp');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -37,8 +38,8 @@ app.get('/rename',function(req,res) {
 
       files.forEach((file, index) => {
 
-        const name = parseFloat( file.split('_')[4] );
-        const fileName2 = String(name) + '.jpg'; // new file name
+        const name = file.replace(0, ''); // how to edit name
+        const fileName2 = String(name); // new file name
 
         const filePath = directoryPath + "/" + file;
         const filePath2 = destinationPath + "/" + fileName2;
@@ -77,6 +78,47 @@ app.get('/rename',function(req,res) {
       }
 
       res.send(template);
+
+  });
+
+});
+
+app.get('/resize',function(req,res) {
+
+  const directoryPath = path.join(__dirname, 'resize/src'); // loop files from folder
+  const destinationPath = path.join(__dirname, 'resize/dist'); // destination
+
+  let arr = [];
+  let template = "";
+
+  fs.readdir(directoryPath, function (err, files) {
+      if (err) return console.log('Unable to scan directory: ' + err);
+
+      files.forEach((file, index) => {
+
+        const name = file;
+        const fileName2 = String(name); // new file name
+
+        const filePath = directoryPath + "/" + file;
+        const filePath2 = destinationPath + "/" + fileName2;
+
+        arr.push(fileName2);
+
+        // resize & duplicate function =========================================
+        console.log(index);
+
+        sharp(filePath)
+        .resize({ width: 150 })
+        .toFile(filePath2, function(err) {
+          // output.jpg is a 200 pixels wide and 200 pixels high image
+          // containing a scaled and cropped version of input.jpg
+          if(err) throw err;
+        });
+        // resize function ends ====================================
+
+      });
+
+      res.send({ status: 'done' });
 
   });
 
